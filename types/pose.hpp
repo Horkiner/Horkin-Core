@@ -16,6 +16,7 @@ namespace horkin
         Vec3 z{};  // row 2: R20 R21 R22
     };
 
+    // 对外位姿接口，含位置和姿态信息
     struct Pose
     {
         Vec3 position{};

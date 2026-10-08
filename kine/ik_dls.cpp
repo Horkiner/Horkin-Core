@@ -48,6 +48,7 @@ namespace horkin
             return {dp.x(), dp.y(), dp.z(), w.x(), w.y(), w.z()};
         }
 
+        // 将公开的 Twist 类型转成 Eigen 向量
         Eigen::Matrix<double, kTwist, 1> to_eigen(const Twist& twist)
         {
             Eigen::Matrix<double, kTwist, 1> v;
@@ -58,6 +59,7 @@ namespace horkin
             return v;
         }
 
+        // 限制本拍步长，避免一次线性化跨太大导致发散
         void cap_twist(Twist& twist, double max_lin, double max_ang)
         {
             Eigen::Vector3d lin(twist[0], twist[1], twist[2]);
@@ -78,6 +80,7 @@ namespace horkin
             twist[5] = ang.z();
         }
 
+        // 用 URDF 的限位夹 q
         void clamp_q(const RobotModel& model, JointVec& q)
         {
             const JointVec lower = model.q_lower();
@@ -89,11 +92,13 @@ namespace horkin
         }
     }
 
+    // 一拍 J dq = twist  dq 按关节类型分别是 rad 或 m
     JointVec ik_step(const RobotModel &model, const JointVec &q, 
                      const Twist &twist, const IkParams& params)
     {
         const Jacobian Jpod = model.jacobian(q);
 
+        // POD 雅可比 -> Eigen  J(行 = 速度分量，列 = 关节)
         Eigen::Matrix<double, kTwist, Eigen::Dynamic> J(kTwist, static_cast<int>(kNJoints));
         for (int r = 0; r < kTwist; ++r)
         {
@@ -103,25 +108,42 @@ namespace horkin
             }
         }
 
-        Eigen::Matrix<double, kTwist, 1> w;
+        // 角速度行乘 ori_length (m/rad)，与线速度同一量纲后再缩放，关系是 s = Lθ
+        Eigen::Matrix<double, kTwist, 1> w;   // 行权重
         w << 1.0, 1.0, 1.0, params.ori_length, params.ori_length, params.ori_length;
         Eigen::Matrix<double, kTwist, Eigen::Dynamic> Js = w.asDiagonal() * J;
 
+        // Jacobian 按列归一化：让每个关节对末端运动的 “力度” 一样，消掉力臂、单位的影响
         Eigen::Matrix<double, Eigen::Dynamic, 1> s(static_cast<int>(kNJoints));
         for (std::size_t j = 0; j < kNJoints; ++j)
         {
             const double n = Js.col(static_cast<int>(j)).norm();
+            // s_j = 1 / || j列 ||，列几乎为 0 则关掉此关节
             s[static_cast<int>(j)] = (n < 1e-8) ? 0.0 : (1.0 / n);
             Js.col(static_cast<int>(j)) *= s[static_cast<int>(j)];
         }
-
+        /*
+                                DLS 公式推导
+            1、原始公式：    J dq = twist
+            2、行权重 W：    W J dq = W twist
+            3、列缩放 S：    W J dq = W J Su = J_s u = b
+            4、阻尼最小二乘： min || J_s u - b ||^2 + λ^2|| u ||^2
+                对其求导：    J_s^T (J_s u - b) + λ^2 u = 0  
+                整理：      (J_s^T J_s  + λ^2 I) u = J_s^T b
+            5、回代得到最终表达式：       
+                            (J_s J_s^T  + λ^2 I) y = Ay = b = W twist   
+                其中：
+                            u = J_s^T y  dq = su
+        */
+        // 构建等式左边的矩阵
         Eigen::Matrix<double, kTwist, kTwist> A = Js * Js.transpose();
-        A.diagonal().array() += params.damping * params.damping;
+        A.diagonal().array() += params.damping * params.damping;        
 
         const Eigen::Matrix<double, kTwist, 1> b = w.cwiseProduct((to_eigen(twist)));
         const Eigen::Matrix<double, kTwist, 1> y = A.ldlt().solve(b);
         const Eigen::VectorXd u = Js.transpose() * y;
 
+        // 还原关节量纲
         JointVec dq{};
         for (std::size_t j = 0; j < kNJoints; ++j)
         {
@@ -130,6 +152,7 @@ namespace horkin
         return dq;
     }
 
+    // 规划/求精确解用：反复算误差 -> 限步 -> ik_step -> 夹限位，直到进阈值或超迭代
     bool ik_pose(const RobotModel &model, JointVec &q, const Pose &target, const IkPoseParams& params)
     {
         for (int iter = 0; iter < params.max_iter; ++iter)
@@ -137,11 +160,14 @@ namespace horkin
             Twist error = pose_error(model.fk(q), target);
             const Eigen::Vector3d lin(error[0], error[1], error[2]);
             const Eigen::Vector3d ang(error[3], error[4], error[5]);
+
+            // 位置、姿态误差都收敛进阈值
             if (lin.norm() < params.pos_tol && ang.norm() < params.ori_tol)
             {
                 return true;
             }
 
+            // 限制步进，防止太大导致发散
             cap_twist(error, params.max_lin, params.max_ang);
             const JointVec dq = ik_step(model, q, error, params.step);
             for (std::size_t j = 0; j < kNJoints; ++j)

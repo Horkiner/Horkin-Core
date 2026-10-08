@@ -1,4 +1,4 @@
-// 机器人模型定义文件，对接P
+// 机器人模型定义文件，对接 Pinocchio
 #pragma once
 
 #include "types/joint.hpp"
@@ -23,8 +23,10 @@ namespace horkin
 
             Pose fk(const JointVec& q) const;
             Jacobian jacobian(const JointVec& q) const;
-
+            
+            // 模型关节最小值限位，返回类型：JointVec
             JointVec q_lower() const;
+            // 模型关节最大值限位，返回类型：JointVec
             JointVec q_upper() const;
 
         private:

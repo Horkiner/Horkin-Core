@@ -59,6 +59,11 @@ namespace horkin
         }
     }
 
+    /* 机器人模型构造函数
+       @param: 
+            urdf_path： urdf路径
+            ee_frame：  末端/工具参考坐标系
+    */
     RobotModel::RobotModel(const std::string& urdf_path, const std::string& ee_frame)
         : impl_(std::make_unique<Impl>())
     {   
@@ -122,10 +127,14 @@ namespace horkin
 
     RobotModel::~RobotModel() = default;
 
+    /*  关节限位值  */
     JointVec RobotModel::q_lower() const { return impl_->q_lower; }
     JointVec RobotModel::q_upper() const { return impl_->q_upper; }
 
-    /*  前向运动学  */
+    /*  前向运动学  
+       @param：  当前关节值  类型：JointVec
+       @return： 末端位姿    类型：Pose
+    */
     Pose RobotModel::fk(const JointVec& q) const
     {
         const Eigen::VectorXd qpin = to_qpin(impl_->model, q);
