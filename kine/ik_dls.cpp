@@ -1,5 +1,5 @@
 #include "kine/ik_dls.hpp"
-#include "kine/robot_model.hpp"
+#include "model/robot_model.hpp"
 #include "types/jacobian.hpp"
 #include "types/joint.hpp"
 #include "types/joint_layout.hpp"
@@ -92,7 +92,6 @@ namespace horkin
         }
     }
 
-    // 一拍 J dq = twist  dq 按关节类型分别是 rad 或 m
     JointVec ik_step(const RobotModel &model, const JointVec &q, 
                      const Twist &twist, const IkParams& params)
     {
@@ -152,7 +151,6 @@ namespace horkin
         return dq;
     }
 
-    // 规划/求精确解用：反复算误差 -> 限步 -> ik_step -> 夹限位，直到进阈值或超迭代
     bool ik_pose(const RobotModel &model, JointVec &q, const Pose &target, const IkPoseParams& params)
     {
         for (int iter = 0; iter < params.max_iter; ++iter)

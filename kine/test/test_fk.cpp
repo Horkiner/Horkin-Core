@@ -1,4 +1,4 @@
-#include "kine/robot_model.hpp"
+#include "model/robot_model.hpp"
 #include "types/jacobian.hpp"
 #include "types/joint.hpp"
 #include "types/pose.hpp"

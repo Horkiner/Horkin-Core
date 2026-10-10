@@ -21,6 +21,7 @@ add_subdirectory(ports)
 # ---------------------------------------------------------------------------
 # 纯逻辑库（禁止依赖 hal / sim / ROS）
 # ---------------------------------------------------------------------------
+add_subdirectory(model)
 add_subdirectory(kine)
 add_subdirectory(dyn)
 add_subdirectory(signal)

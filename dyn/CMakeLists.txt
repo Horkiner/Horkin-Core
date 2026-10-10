@@ -1,7 +1,7 @@
 # Dynamics library. Placeholder INTERFACE until first .cpp.
 
 add_library(horkin_dyn INTERFACE)
-target_link_libraries(horkin_dyn INTERFACE horkin_kine)
+target_link_libraries(horkin_dyn INTERFACE horkin_model)
 target_include_directories(horkin_dyn INTERFACE "${HORKIN_INCLUDE_ROOT}")
 
 # Example when implementing:
@@ -12,7 +12,7 @@ target_include_directories(horkin_dyn INTERFACE "${HORKIN_INCLUDE_ROOT}")
 #   mass.cpp
 #   friction.cpp
 # )
-# target_link_libraries(horkin_dyn PUBLIC horkin_kine)
+# target_link_libraries(horkin_dyn PUBLIC horkin_model)
 # target_include_directories(horkin_dyn PUBLIC "${HORKIN_INCLUDE_ROOT}")
 
 if(HORKIN_BUILD_TESTS)

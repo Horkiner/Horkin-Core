@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-namespace horkin 
+namespace horkin
 {
-    // Monotonic clock time in nanoseconds.
+    /** 单调时钟，纳秒 */
     using TimeNs = std::uint64_t;
 }
