@@ -4,6 +4,7 @@
 #include "types/joint.hpp"
 #include "types/pose.hpp"
 #include "types/jacobian.hpp"
+#include "types/inertia.hpp"
 
 #include <memory>
 #include <string>
@@ -18,7 +19,7 @@ namespace horkin
      * - 逻辑关节顺序与 kJointKind 一致
      * - 进程启动时构造一次，循环里调成员函数
      * - fk、jacobian 的函数体在 kine/
-     * - 动力学成员（rnea、gravity）声明加在本类，函数体放在 dyn/
+     * - 动力学成员（rnea、gravity、mass）声明加在本类，函数体放在 dyn/
      */
     class RobotModel
     {
@@ -101,6 +102,18 @@ namespace horkin
             * 返回：与 rnea 相同。前馈用 tau_ff = gravity(q)
             */
             JointVec gravity(const JointVec& q) const;
+
+            /**
+            * 关节空间惯性矩阵
+            *
+            * 流程：在当前 q 上算 M(q)，对称
+            *
+            * 参数
+            * - q：当前位置
+            *
+            * 返回：Inertia，M[i][j]
+            */
+            Inertia mass(const JointVec& q) const;
 
         private:
             struct Impl;
