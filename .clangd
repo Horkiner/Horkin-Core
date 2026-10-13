@@ -1,2 +1,7 @@
 CompileFlags:
   CompilationDatabase: build
+  # g++ precompiled headers are not usable by clangd.
+  Remove:
+    - -Winvalid-pch
+    - -include
+    - .*/cmake_pch\.hxx

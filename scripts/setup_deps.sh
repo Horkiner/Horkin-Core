@@ -51,9 +51,22 @@ sudo cp "${SCRIPT_DIR}/apt-preferences-horkin" /etc/apt/preferences.d/horkin
 
 sudo apt-get update
 
-if ! apt-cache madison robotpkg-pinocchio | grep -q " ${PINOCCHIO_VER} "; then
+# Do not grep -q a pipeline under pipefail: grep exits at the first hit,
+# apt-cache then dies with SIGPIPE, and the version looks missing.
+has_exact_version() {
+  local pkg="$1" ver="$2" listing
+  listing="$(apt-cache show "${pkg}" 2>/dev/null || true)"
+  grep -Fqx "Version: ${ver}" <<<"${listing}"
+}
+
+if ! has_exact_version robotpkg-pinocchio "${PINOCCHIO_VER}"; then
   echo "robotpkg-pinocchio ${PINOCCHIO_VER} is not in the apt index for ${CODENAME}." >&2
   apt-cache policy robotpkg-pinocchio >&2 || true
+  exit 1
+fi
+if ! has_exact_version robotpkg-hpp-fcl "${HPP_FCL_VER}"; then
+  echo "robotpkg-hpp-fcl ${HPP_FCL_VER} is not in the apt index for ${CODENAME}." >&2
+  apt-cache policy robotpkg-hpp-fcl >&2 || true
   exit 1
 fi
 

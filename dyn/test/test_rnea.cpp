@@ -28,7 +28,7 @@ namespace
 int main()
 {
     horkin::RobotModel robot(HORKIN_TEST_URDF, "tool");
-
+    
     horkin::JointVec q{};
     horkin::JointVec zero{};
     const horkin::JointVec g0 = robot.gravity(q);
@@ -61,4 +61,5 @@ int main()
 
     std::printf("test_rnea ok\n");
     return 0;
+
 }
