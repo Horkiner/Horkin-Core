@@ -2,7 +2,6 @@
 #include "model/detail/impl.hpp"
 
 #include "model/robot_model.hpp"
-#include "types/jacobian.hpp"
 #include "types/joint.hpp"
 #include "types/joint_layout.hpp"
 
