@@ -1,3 +1,4 @@
+// 全栈传递的六维力。端口给出传感器系原始力，补偿、滤波和换系在 signal/。
 #pragma once
 
 #include "types/time.hpp"

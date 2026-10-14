@@ -2,7 +2,6 @@
 #pragma once
 
 #include "joint_layout.hpp"
-#include "types/joint_layout.hpp"
 
 namespace horkin
 {
