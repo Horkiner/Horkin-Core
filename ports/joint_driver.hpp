@@ -5,7 +5,14 @@
 
 namespace horkin
 {
-    /** 可替换的关节后端，真机与仿真同一套 */
+    /**
+     * 可替换的关节后端
+     *
+     * 说明
+     * - 真机与仿真同一套 Read / Write
+     * - 逻辑量：转动 rad / N·m，移动 m / N
+     * - 只有 RT 线程调用 Read / Write
+     */
     class IJointDriver
     {
         public:
