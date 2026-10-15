@@ -13,7 +13,6 @@ namespace horkin
      * 仿真后端：Write 收 tau_ff，内部积分 plant，Read 回 q、dq
      *
      * 说明
-     * - S0 忽略 cmd.q / dq / kp / kd
      * - Enable 之前 Write 不积分，Read 的 valid=false
      */
     class JointSim : public IJointDriver

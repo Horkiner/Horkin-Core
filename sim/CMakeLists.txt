@@ -4,6 +4,7 @@
 add_library(horkin_sim STATIC
   plant.cpp
   joint_sim.cpp
+  servo_sim.cpp
 )
 target_link_libraries(horkin_sim
   PUBLIC horkin_ports horkin_dyn
@@ -21,4 +22,7 @@ if(HORKIN_BUILD_TESTS)
   target_link_libraries(test_joint_sim PRIVATE horkin_sim)
   target_compile_definitions(test_joint_sim PRIVATE
     HORKIN_TEST_URDF="${CMAKE_SOURCE_DIR}/config/urdf/v6_mc.urdf")
+
+  add_executable(test_servo_sim test/test_servo_sim.cpp)
+  target_link_libraries(test_servo_sim PRIVATE horkin_sim)
 endif()

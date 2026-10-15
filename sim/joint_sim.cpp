@@ -1,6 +1,7 @@
 #include "sim/joint_sim.hpp"
-#include "model/robot_model.hpp"
 #include "sim/plant.hpp"
+#include "sim/servo_sim.hpp"
+#include "model/robot_model.hpp"
 #include "types/command.hpp"
 #include "types/joint.hpp"
 
@@ -34,7 +35,7 @@ namespace horkin
         {
             return;
         }
-        last_tau_ = cmd.tau_ff;
-        plant_.step(cmd.tau_ff, dt_);
+        last_tau_ = servo_mit(cmd, plant_.q(), plant_.dq());
+        plant_.step(last_tau_, dt_);
     }
 }
