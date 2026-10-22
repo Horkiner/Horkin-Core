@@ -26,7 +26,7 @@ runtime ──► control / signal / kine / dyn ──► types
 source scripts/env.sh
 ```
 
-`setup_deps.sh` 会加 robotpkg 源、按版本安装、写入 apt pin、`apt-mark hold`。之后每次开终端 `source scripts/env.sh`（或把其中的 `export` 写进 `~/.bashrc`）。
+`setup_deps.sh` 会装齐本机构建环境：编译器、CMake、pkg-config、Eigen、urdfdom、Boost、octomap，以及钉死版本的 Pinocchio / hpp-fcl（robotpkg 源、apt pin、`apt-mark hold`）。之后每次开终端 `source scripts/env.sh`（或把其中的 `export` 写进 `~/.bashrc`）。
 
 本机已装好时也可只：
 

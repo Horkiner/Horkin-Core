@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Install the pinned C++ deps for Horkin Core (Ubuntu amd64).
-# Pinocchio 2.7.0 + hpp-fcl 2.4.4 via robotpkg. Do not install 3.x / 4.x.
+# One-shot Ubuntu amd64 environment for Horkin Core.
+# Toolchain (cmake, g++, pkg-config) plus the libraries CMake looks up
+# when configuring Pinocchio 2.7.0. Pinocchio and hpp-fcl stay pinned;
+# do not install 3.x / 4.x.
 #
 #   ./scripts/setup_deps.sh
 #   source scripts/env.sh
@@ -29,7 +31,20 @@ if ! command -v sudo >/dev/null; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CODENAME="$(lsb_release -cs)"
+
+if ! command -v curl >/dev/null; then
+  echo "==> Installing curl"
+  sudo apt-get update
+  sudo apt-get install -y ca-certificates curl
+fi
+
+# shellcheck disable=SC1091
+source /etc/os-release
+CODENAME="${VERSION_CODENAME:-}"
+if [[ -z "${CODENAME}" ]]; then
+  echo "Could not read VERSION_CODENAME from /etc/os-release." >&2
+  exit 1
+fi
 
 echo "==> Ubuntu ${CODENAME}  Pinocchio ${PINOCCHIO_VER}  hpp-fcl ${HPP_FCL_VER}"
 
@@ -70,14 +85,38 @@ if ! has_exact_version robotpkg-hpp-fcl "${HPP_FCL_VER}"; then
   exit 1
 fi
 
-echo "==> Installing robotpkg-pinocchio=${PINOCCHIO_VER} robotpkg-hpp-fcl=${HPP_FCL_VER}"
+echo "==> Installing toolchain, CMake dependencies, and pinned robotpkg packages"
 sudo apt-get install -y \
+  build-essential \
+  ca-certificates \
+  cmake \
+  curl \
+  pkg-config \
+  libeigen3-dev \
+  liburdfdom-dev \
+  liburdfdom-headers-dev \
+  libconsole-bridge-dev \
+  libtinyxml-dev \
+  libassimp-dev \
+  libqhull-dev \
+  liboctomap-dev \
+  libboost-filesystem-dev \
+  libboost-serialization-dev \
+  libboost-system-dev \
+  libboost-chrono-dev \
   "robotpkg-pinocchio=${PINOCCHIO_VER}" \
   "robotpkg-hpp-fcl=${HPP_FCL_VER}"
 
 sudo apt-mark hold robotpkg-pinocchio robotpkg-hpp-fcl
 
 echo "==> Verifying"
+for cmd in cmake c++ pkg-config; do
+  if ! command -v "${cmd}" >/dev/null; then
+    echo "Missing ${cmd} after install." >&2
+    exit 1
+  fi
+done
+
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 GOT="$(pkg-config --modversion pinocchio)"
 if [[ "${GOT}" != "${PINOCCHIO_VER}" ]]; then
@@ -85,6 +124,21 @@ if [[ "${GOT}" != "${PINOCCHIO_VER}" ]]; then
   exit 1
 fi
 test -f "${PREFIX}/lib/cmake/pinocchio/pinocchioConfig.cmake"
+
+eigen_cfg=""
+for f in \
+  /usr/share/eigen3/cmake/Eigen3Config.cmake \
+  /usr/lib/cmake/eigen3/Eigen3Config.cmake
+do
+  if [[ -f "${f}" ]]; then
+    eigen_cfg="${f}"
+    break
+  fi
+done
+if [[ -z "${eigen_cfg}" ]]; then
+  echo "Eigen3Config.cmake not found. libeigen3-dev did not install it." >&2
+  exit 1
+fi
 
 echo
 echo "OK: Pinocchio ${GOT} at ${PREFIX}"
