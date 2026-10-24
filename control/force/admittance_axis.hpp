@@ -42,6 +42,6 @@ namespace horkin
      * - dt：周期，秒，必须 > 0
      * - params：m、d、k
      */
-    void admitance_axis_step(AdmitAxisState& state, double f, double dt,
+    void admittance_axis_step(AdmitAxisState& state, double f, double dt,
                               const AdmitAxisParams& params);
 }
