@@ -1,16 +1,12 @@
-# Real hardware adapters. Implements ports. Must NOT link sim or control formulas.
-
-add_library(horkin_hal INTERFACE)
-target_link_libraries(horkin_hal INTERFACE horkin_ports)
-target_include_directories(horkin_hal INTERFACE "${HORKIN_INCLUDE_ROOT}")
-
-# Example when implementing:
-# add_library(horkin_hal STATIC
-#   can_socket.cpp
-#   motor_mit.cpp
-#   motor_j3_trans.cpp
-#   sensor_hkv.cpp
-#   clock_realtime.cpp
-# )
-# target_link_libraries(horkin_hal PUBLIC horkin_ports)
-# target_include_directories(horkin_hal PUBLIC "${HORKIN_INCLUDE_ROOT}")
+add_library(horkin_hal STATIC
+  motor_dm.cpp
+  joint_trans.cpp
+)
+target_link_libraries(horkin_hal PUBLIC horkin_ports)
+target_include_directories(horkin_hal PUBLIC "${HORKIN_INCLUDE_ROOT}")
+if(HORKIN_BUILD_TESTS)
+  add_executable(test_motor_dm test/test_motor_dm.cpp)
+  target_link_libraries(test_motor_dm PRIVATE horkin_hal)
+  add_executable(test_joint_trans test/test_joint_trans.cpp)
+  target_link_libraries(test_joint_trans PRIVATE horkin_hal)
+endif()
